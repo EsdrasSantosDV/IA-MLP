@@ -7,14 +7,14 @@ completodiretorio=current_directory+'/digitos';
 
 os.chdir(completodiretorio)
 
-ampdigitos=50
+ampdigitos=80
 vsai=10
 amostras=ampdigitos*vsai
 entradas=256
 neur=200
 limiar=0.0
 alfa=0.005
-errotolerado=0.9
+errotolerado=0.01
 listaciclo=[]
 listaerro=[]
 
@@ -39,7 +39,8 @@ for m in range(vsai):
 ordem=ordem.astype('int')
 
 #LENDO O ARQUIVO DE SAÍDAS ESPERADAS (TARGET)
-t=np.loadtxt('results.txt')
+t = np.loadtxt('respostas.csv', delimiter=',', skiprows=0)
+# t=np.loadtxt('results.txt')
 
 #GERAR MATRIZ DE PESOS SINÁPTICOS ALEATORIAMENTE
 vanterior=np.zeros((entradas, neur))
@@ -82,6 +83,7 @@ ciclo=0
 errototal=100000
 
 while errotolerado < errototal:
+
     errototal = 0
 
     for padrao in range(amostras):
@@ -94,7 +96,7 @@ while errotolerado < errototal:
         for m in range(vsai):
             h[m][0] = y[0][m]
         for m in range(vsai):
-            target[m][0] = t[0][ordem[padrao]]
+            target[m][0] = t[m][ordem[padrao]]
 
         errototal = errototal + np.sum(0.5 * ((target - h) ** 2))
 
@@ -117,7 +119,7 @@ while errotolerado < errototal:
         vnovo = vanterior + np.transpose(deltav)
         v0novo = v0anterior + np.transpose(deltav0)
         wnovo = wanterior + np.transpose(deltaw)
-        wonovo = w0anterior + np.transpose(deltaw0)
+        w0novo = w0anterior + np.transpose(deltaw0)
         vanterior = vnovo
         v0anterior = v0novo
         wanterior = wnovo
@@ -126,56 +128,67 @@ while errotolerado < errototal:
     ciclo = ciclo + 1
     listaciclo.append(ciclo)
     listaerro.append(errototal)
-    # print('Ciclo\t Erro')
-    # print(ciclo, '\t', errototal)
+    print('Ciclo\t Erro')
+    print(ciclo, '\t', errototal)
 
 plt.plot(listaciclo,listaerro)
 plt.xlabel('Ciclo')
 plt.ylabel('Erro')
 plt.show()
 
+print("vnovo", vnovo)
+print("v0novo", v0novo)
+print("wnovo", wnovo)
+print("w0novo", w0novo)
 
-#os digitos vão de 0 a 135 pra cada padrão
-#temos a amostra tal pra frente
-aminicial=1
-#quantidade de amostras pra cada digito
-amtestedigitos=89
-#tantas linhas da rede pra uma coluna
-yteste=np.zeros((vsai,1))
+np.savetxt("vnovo.csv", vnovo, delimiter=';')
+np.savetxt("v0novo.csv", v0novo, delimiter=';')
+np.savetxt("wnovo.csv", wnovo, delimiter=';')
+np.savetxt("w0novo.csv", w0novo, delimiter=';')
 
-#quantidade total
-cont=0
-#quantidade quando a rede acertar
-contcerto=0
+# #os digitos vão de 0 a 135 pra cada padrão
+# #temos a amostra tal pra frente
+# aminicial=1
+# #quantidade de amostras pra cada digito
+# amtestedigitos=89
+# #tantas linhas da rede pra uma coluna
+# yteste=np.zeros((vsai,1))
+#
+# #quantidade total
+# cont=0
+# #quantidade quando a rede acertar
+# contcerto=0
+#
+# ordem=np.zeros(amostras)
+# for m in range(vsai):
+#     k1=str(m)
+#     for n in range(amtestedigitos):
+#         k3a=n+aminicial
+#         k3=str(k3a)
+#         nome=k1+k2+k3+k4
+#         xteste=np.loadtxt(nome)
+#         for m2 in range(vsai):
+#             for n2 in range(neur):
+#                 zin[0][n2]=np.dot(xteste,vanterior[:,n2]+v0anterior[0][n2])
+#                 np.tanh(zin)
+#                 yin=np.dot(z,wanterior)+w0anterior
+#                 y=np.tanh(yin)
+#             for j in range(vsai):
+#                 if y[0][j]>=limiar:
+#                     y[0][j]=1.0
+#                 else:
+#                     y[0][j]=-1.0
+#             for j in range(vsai):
+#                 yteste[j][0]=y[0][j]
+#
+#             for j in range(vsai):
+#                 target[j][0]=y[0][j]
+#             soma=np.sum(y-target)
+#
+#             if soma==0:
+#                 contcerto=contcerto+1
+#             cont=cont+1
+# taxa=contcerto/cont
+# print("taxa",taxa)
 
-ordem=np.zeros(amostras)
-for m in range(vsai):
-    k1=str(m)
-    for n in range(amtestedigitos):
-        k3a=n+aminicial
-        k3=str(k3a)
-        nome=k1+k2+k3+k4
-        xteste=np.loadtxt(nome)
-        for m2 in range(vsai):
-            for n2 in range(neur):
-                zin[0][n2]=np.dot(xteste,vanterior[:,n2]+v0anterior[0][n2])
-                np.tanh(zin)
-                yin=np.dot(z,wanterior)+w0anterior
-                y=np.tanh(yin)
-            for j in range(vsai):
-                if y[0][j]>=limiar:
-                    y[0][j]=1.0
-                else:
-                    y[0][j]=-1.0
-            for j in range(vsai):
-                yteste[j][0]=y[0][j]
-
-            for j in range(vsai):
-                target[j][0]=y[0][j]
-            soma=np.sum(y-target)
-
-            if soma==0:
-                contcerto=contcerto+1
-            cont=cont+1
-taxa=contcerto/cont
-print("taxa",taxa)
+#0.7888888888888889
